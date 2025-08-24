@@ -83,19 +83,28 @@ async function startWalk() {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         
         // Reset state for a new walk
-        resetApp();
+        await resetApp(); // Make reset async to handle audio context
         
         // Setup MediaRecorder
         mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+        mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+                audioChunks.push(event.data);
+            }
+        };
         mediaRecorder.onstop = () => {
-            audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            if (audioChunks.length > 0) {
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                playbackAudio.src = URL.createObjectURL(audioBlob);
+            } else {
+                audioBlob = null;
+            }
             audioChunks = [];
-            playbackAudio.src = URL.createObjectURL(audioBlob);
+            updateUIForPlayback(); // Check and update UI AFTER audio is processed
         };
         
         // Start recording
-        mediaRecorder.start();
+        mediaRecorder.start(1000); // Collect data in chunks to prevent empty blobs
         isRecording = true;
         
         // Start GPS tracking
@@ -118,17 +127,16 @@ function stopWalk() {
     if (!isRecording) return;
     
     // Stop recording and GPS
-    mediaRecorder.stop();
     navigator.geolocation.clearWatch(watchId);
     isRecording = false;
+    // The onstop event will fire after this, which then calls updateUIForPlayback
+    mediaRecorder.stop(); 
     
     // Add end marker
     if (trailData.length > 0) {
         const lastPoint = trailData[trailData.length - 1];
         L.marker([lastPoint.lat, lastPoint.lng], { icon: endIcon }).addTo(map);
     }
-
-    updateUIForPlayback();
 }
 
 // --- GPS Handling ---
@@ -169,7 +177,7 @@ function togglePlayback() {
 }
 
 function startPlayback() {
-    if (trailData.length < 2 || !audioBlob) {
+    if (trailData.length < 2 || !audioBlob || audioBlob.size <= 0) {
         statusDiv.textContent = "Not enough data to play.";
         return;
     }
@@ -263,7 +271,7 @@ function updateUIForPlayback() {
     startBtn.classList.remove('recording');
     startBtn.textContent = 'Start Walk';
     
-    if (trailData.length > 1 && audioBlob) {
+    if (trailData.length > 1 && audioBlob && audioBlob.size > 0) {
         playBtn.classList.remove('hidden');
         statusDiv.textContent = "Walk finished! Ready to play.";
     } else {
@@ -272,7 +280,12 @@ function updateUIForPlayback() {
     resetBtn.classList.remove('hidden');
 }
 
-function resetApp() {
+async function resetApp() {
+    if (isRecording) {
+        console.log("Cannot reset while recording.");
+        return;
+    }
+
     stopPlayback();
     
     // Clear map layers
@@ -286,6 +299,16 @@ function resetApp() {
     trailData = [];
     audioBlob = null;
     playbackAudio.src = '';
+    // This resolves potential "NotAllowedError" on some browsers by ensuring
+    // the audio context is resumed after a user gesture before trying to play.
+    if (playbackAudio.paused) {
+        try {
+            await playbackAudio.play();
+            playbackAudio.pause();
+        } catch (e) {
+            // This is expected if there's no src, we just want to activate the element.
+        }
+    }
     
     // Reset UI
     startBtn.classList.remove('hidden');
