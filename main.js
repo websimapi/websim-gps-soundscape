@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import * as L from 'leaflet';
 
 // --- DOM Elements ---
 const mapElement = document.getElementById('map');
@@ -300,4 +300,3 @@ function resetApp() {
 
 // --- Entry Point ---
 init();
-
