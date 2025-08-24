@@ -1,0 +1,106 @@
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #333;
+    color: white;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+    background-color: #555;
+}
+
+#controls {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.75);
+    padding: 15px;
+    padding-bottom: calc(15px + env(safe-area-inset-bottom)); /* For iPhone X+ notches */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#status {
+    text-align: center;
+    font-size: 1rem;
+    min-height: 20px;
+}
+
+#button-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+button {
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s, transform 0.1s;
+    flex-grow: 1;
+    max-width: 180px;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+#start-btn.recording {
+    background-color: #F44336; /* Red for recording */
+}
+
+#play-btn {
+    background-color: #2196F3; /* Blue for play */
+}
+#play-btn.playing {
+    background-color: #ff9800; /* Orange for pause/stop */
+}
+
+#reset-btn {
+    background-color: #607D8B; /* Grey for reset */
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Leaflet specific overrides for better mobile experience */
+.leaflet-control-zoom {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: white !important;
+    width: 40px !important;
+    height: 40px !important;
+    line-height: 40px !important;
+}
+.leaflet-control-zoom-in:hover, .leaflet-control-zoom-out:hover {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+.leaflet-control-attribution {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.7) !important;
+}
+
